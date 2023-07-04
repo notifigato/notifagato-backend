@@ -1,0 +1,12 @@
+FROM node:18.16.0
+ARG ROOT_DIR
+
+WORKDIR /var/next
+
+#install and cache modules
+COPY $ROOT_DIR/package.json ./package.json
+RUN npm i --production --legacy-peer-deps
+
+COPY $ROOT_DIR/ ./
+
+ENTRYPOINT npm run start

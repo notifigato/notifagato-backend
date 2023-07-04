@@ -1,0 +1,58 @@
+version: "3.9"
+
+volumes:
+  pg-data:
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    restart: always
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=CQjUSJEV
+      - POSTGRES_DB=postgres
+    ports:
+      - 5432:5432
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        ROOT_DIR: ./backend
+    restart: on-failure
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        ROOT_DIR: ./frontend
+    restart: on-failure
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/
+      - ./certbot/conf/:/etc/letsencrypt/
+
+  nginx:
+    image: nginx:1.19.7
+    restart: always
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d/
+      - ./frontend:/var/next
+      - ./certbot/www:/var/www/certbot/
+      - ./certbot/conf/:/etc/nginx/ssl/
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - backend
+      - frontend

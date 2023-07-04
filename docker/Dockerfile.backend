@@ -1,0 +1,14 @@
+FROM node:18.16.0
+ARG ROOT_DIR
+
+WORKDIR /var/node
+
+#install and cache modules
+COPY $ROOT_DIR/package.json ./
+RUN npm i --legacy-peer-deps
+
+COPY $ROOT_DIR/ ./
+
+RUN npm run prisma:generate
+
+ENTRYPOINT npm run start
